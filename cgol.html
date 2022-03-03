@@ -1,0 +1,118 @@
+<html>
+<head><title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script type="text/javascript" src="figures.js"></script>
+	<script type="text/javascript" src="cgol.js"></script>
+	<link rel="stylesheet" type="text/css" href="cgol.css">
+</head>
+<html>
+<body>
+	<h2 id="header">Игра «Жизнь»</h2>
+	<span id="tell_me_the_rules" class="tip" title="Щелкните, чтобы показать/спрятать правила" onclick="toggle_show('the_rules')">Напомнить правила?</span>
+	|
+	<span id="help_me" class="tip" title="Щелкните, чтобы показать/спрятать справку" onclick="toggle_show('reference')">Непонятный интерфейс?</span>
+	|
+	<span id="exit_button" class="tip" title="Нажмите, чтобы выйти из игры" onclick="exit()">Выйти из игры</span>
+	<hr>
+	<div id="the_rules">
+		<p><b>Игра «Жизнь»</b> происходит на клеточном поле, которое, традиционно, называется «вселенная». Каждая клетка может быть живой или мёртвой.</p>
+		<p>Поколения сменяются синхронно по простым правилам:</p>
+		<ul>
+			<li>в пустой <b>(мёртвой) клетке</b>, рядом с которой <b>ровно три живые клетки</b>, зарождается жизнь;</li>
+			<li>если <b>у живой клетки</b> есть <b>две или три живые соседки</b>, то эта клетка продолжает жить;</li>
+			<li><b>в противном случае</b> (если соседей меньше двух или больше трёх) клетка умирает («от одиночества» или «от перенаселённости»).</li>
+		</ul>
+		<p>Игрок задает первое поколение, но на сам процесс не влияет. Впрочем, вы можете ставить игру на паузу и добавлять фигуры по вашему желанию.</p>
+	</div>
+	<div id="reference">
+		<p>Чтобы задать первое поколение, вы можете:</p>
+		<ul>
+			<li>Нарисовать его мышкой на клетчатом поле;</li>
+			<li>Вставить одну из фигур, забитых в базу данных программы.</li>
+		</ul>
+		<p>Вы можете изменять режим ввода с помощью переключателя, расположенного над полем.</p>
+		<p>Чтобы запустить смену поколений, нажмите кнопку <b>Start!</b>. Индикатор слева от поля загорится красным, что означает, что в данный момент происходит анимация. Чтобы приостановить анимацию, нажмите <b>Stop</b>. Чтобы сбросить состояние и начать с чистого листа, нажмите <b>Clear</b>.</p>
+		<p>В этой версии игры, кроме состояний <i>живая клетка</i>/<i>мертвая клетка</i>, подсвечиваются также <i>клетки, которые были когда-то живыми</i> (по умолчанию светло-зеленый цвет), и <i>клетки, в которых жизнь зародилась только в этом поколении</i> (синий цвет; клетки, которые живы уже дольше, чем одно поколение, зеленого цвета).</p>
+		<p>Если вам не нравятся цвета, вы можете их настроить. На панели в правой половине окна вы увидите кнопку <b>Настройки (до начала анимации)</b>. Щелкнув по ней, вы развернете список всех возможных настроек. Внимательно ознакомьтесь с правилами ввода данных. После изменения настроек их необходимо применить, нажав на кнопку <b>Применить настройки</b> (кнопка находится после списка настроек). Индикатор возле кнопки <b>Настройки (до начала анимации)</b> показывает наличие несохраненных настроек.</p>
+		<p>Ниже списка настроек находятся фигуры с их описанием. Чтобы вставить фигуру, поставьте переключатель в положение вставка выбранной фигуры и выберите одну из фигур из правой панели. Теперь поводите курсором на полю - коричневым будет показываться, как будет выглядеть эта фигура. Чтобы вставить ее, щелкните по выбранному месту.</p>
+		<p>Фигура в Игре «Жизнь» развивается аналогично вне зависимости от того, как она повернута. Поэтому вы можете выбрать угол поворота в правом меню.</p>
+		<p>Чтобы скрыть правую панель, нажмите на <b>стрелочку возле панели</b>. Развернуть панель можно аналогично.</p>
+	</div>
+	<p>Поколений: <span id="counter_gen">0</span></p>
+	<div id="control">
+		<input id="go" type="button" value="Start!" class="button_designed_good"></input><!-- и одновременно Stop. обработчик назначается в initialize()-->
+		<input id="clear_button" type="button" value="Clear" class="button_designed_bad" onclick="makeClean()"></input>
+	</div>
+	<div id="choose_mode">
+		<label class="radio">
+			<input type="radio" name="mode" value="draw" checked onclick="switchInputMode(event, this.value)"/>
+			<div class="radio__text">рисовать фигуры вручную / </div>
+		</label>
+		<label class="radio">
+			<input type="radio" name="mode" value="paste" onclick="switchInputMode(event, this.value)"/>
+			<div class="radio__text">вставка выбранной фигуры</div>
+		</label>
+		<p class="tip" id="cannot_switch">Переключиться нельзя, пока проигрывается анимация</p>
+	</div>
+
+	<br>
+	<canvas id="main"></canvas>
+	<span><div class="indicator" id="animationFinishedIndicator" title="анимация не закончилась"></div></span><br>
+	
+	<div id="pull_out_right_column" title="Нажмите, чтобы показать/спрятать правую колонку" onclick="pullRightColumn(this)"></div>
+	<div id='right_column'>
+		<hr>
+		<span title="Кликните чтобы развернуть/свернуть настройки" onclick="showSettings()" class="button_standard">Настройки (до начала анимации):
+		<div class="indicator" id="settingsAppliedIndicator" title="настройки не сохранены"></div></span>
+		<div id="settings_placeholder">...</div>
+		<div id="settings_list">
+			<p class="tip">Форма записи цвета: в шестнадцатиричной форме либо английским словом типа 'grey', 'red', 'yellow' и т.д.
+			Любые числовые обозначения без единиц измерения. Дроби должны быть только десятичными, и притом с точкой, а не с запятой.</p>
+			<ul id="settingsChange">
+				<li><span title="Обновлять кадры при анимации каждые n миллисекунд (мс)">Интервал анимации: </span>
+					<textarea id='set_interval' cols="5" rows="1" placeholder="200"></textarea></li>
+				<li><span title="Поле будет n клеток по ширине и n клеток по высоте">Ширина поля в клетках (поле квадратное): </span>
+					<textarea id='set_width' cols="5" rows="1" placeholder="50"></textarea></li>
+				<li><span title="Клетка будет n пикселей по ширине и n пикселей по высоте (пкс)">Ширина клетки в пикселях (клетка квадратная): </span>
+					<textarea id='set_cell' cols="5" rows="1" placeholder="10"></textarea></li>
+				<hr>
+				<li><span title="Цвет клеток, в которых есть жизнь">Цвет живых клеток: </span>
+					<textarea id='set_aliveBack' cols="10" rows="1" placeholder="#035600"></textarea></li>
+				<li><span title="Цвет клеток, в которых нет жизни">Цвет мертвых клеток: </span>
+					<textarea id='set_deadBack' cols="10" rows="1" placeholder="#ffffff"></textarea></li>
+				<li><span title="Цвет клеток, в которых жизнь зародилась только в этом поколении">Цвет только что оживших клеток: </span>
+					<textarea id='set_highlightNew' cols="10" rows="1" placeholder="#004E70"></textarea></li>
+				<li><span title="Цвет клеток, в которых когда-либо была жизнь">Цвет клеток, которые когда-либо были живыми: </span>
+					<textarea id='set_highlightUsed' cols="10" rows="1" placeholder="#D9E4CE"></textarea></li>
+				<li><span title="Цвет клеток фигуры, которую еще не поставили">Цвет клеток фигуры, которую еще не поставили: </span>
+					<textarea id='set_highlightImaginary' cols="10" rows="1" placeholder="#EFC46C"></textarea></li>
+				<li><span title="Цвет границы между клетками">Цвет границы между клетками: </span>
+					<textarea id='set_border' cols="10" rows="1" placeholder="#bbbbbb"></textarea></li>
+				<li><span title="Цвет фона страницы">Цвет фона страницы: </span>
+					<textarea id='set_pageBack' cols="10" rows="1" placeholder="#ffffff"></textarea></li>
+			</ul>
+			<input id="setAll" type="button" value="Применить настройки" onclick="if (window.htmlLoaded) applySettings(); else alert('Wait until window is loaded');" class="button_standard"></input>
+		</div>
+		<hr>
+		<div id="rotator">
+			<p>Повернуть фигуру на <span id="rotator_display">0</span> градусов</p>
+			<input type="range" min='0' max='3' value='0' oninput="rotationSwitcher(this.value)">
+		</div>
+		<hr>
+		<div id="discovered_figures">
+			<p>С момента создания игры было открыто множество интересных фигур. Вот лишь некоторые из них:</p>
+			<p class='tip'>Чтобы поместить фигуру на поле, щелкните одну из кнопок ниже, а затем укажите на поле, где хотите установить фигуру</p>
+			<ul id="figure_list">
+			</ul>
+		</div>
+	</div>
+	
+	<!--<textarea id='testarea' cols="100" rows="5" placeholder="..."></textarea>
+	<input id="eval" type="button" value="eval" onclick="eval(document.getElementById('testarea').value)"></input>
+	<div id="error"></div>-->
+	<script>
+	alert("java::onload=true");
+	initialize();
+	</script>
+</body>
+</html>
